@@ -81,7 +81,7 @@ public class HelloControllerTests {
         )
         .andExpect(status().isOk())
         .andExpect(
-                content().string(startsWith("Hello"))
+                content().string(startsWith("Hola"))
         );
     }
 
