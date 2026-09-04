@@ -1,36 +1,49 @@
 pipeline {
-
     agent any
-
-    tools {
-        // Install the Maven version configured as "M398" and add it to the path.
-        jdk 'JDK21'
-        maven "M398"
-    }
 
     stages {
 
-        stage('Echo Version') {
-            steps {
-                echo 'Print Maven Version'
-                sh 'mvn -version'
-            }
-        }
-
         stage('Build') {
             steps {
-                // Get some code from a GitHub repository
-                // git branch: 'main', url: 'https://github.com/prasad-rajen/jenkins-hello-world123.git'
-
-                // Run Maven Package CMD
-                sh "mvn clean package -DskipTests=true"
+                sh 'mvn clean package -DskipTests=true'
+                archiveArtifacts 'target/hello-demo-*.jar'
             }
         }
 
-        stage('Unit Test') {
+        stage('Test') {
             steps {
-                sh "mvn test"
+                sh 'mvn test'
+                junit(
+                    testResults: 'target/surefire-reports/TEST-*.xml',
+                    keepProperties: true,
+                    keepTestNames: true
+                )
             }
         }
+
+        stage('Containerization') {
+            steps {
+                sh 'echo Docker Build Image...'
+                sh 'echo Docker Tag Image.....'
+                sh 'echo Docker Push Image......'
+            }
+        }
+
+        stage('Kubernetes Deployment') {
+            steps {
+                sh 'echo Deploy to Kubernetes using ArgoCD'
+            }
+        }
+
+        stage('Integration Testing') {
+            steps {
+                sh "sleep 10s"
+                sh 'echo Testing using cURL commands......'
+            }
+        }
+    }
+
+    tools {
+        maven 'M398'
     }
 }
