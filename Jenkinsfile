@@ -1,36 +1,50 @@
+/******* BRANCH - test *******/
+
 pipeline {
-
     agent any
-
-    tools {
-        // Install the Maven version configured as "M398" and add it to the path.
-        jdk 'JDK21'
-        maven "M398"
-    }
 
     stages {
 
-        stage('Echo Version') {
+        stage('Maven Version') {
             steps {
-                echo 'Print Maven Version'
+                sh 'echo Print Maven Version'
                 sh 'mvn -version'
             }
         }
 
         stage('Build') {
             steps {
-                // Get some code from a GitHub repository
-                // git branch: 'main', url: 'https://github.com/prasad-rajen/jenkins-hello-world123.git'
-
-                // Run Maven Package CMD
-                sh "mvn clean package -DskipTests=true"
+                sh 'mvn clean package -DskipTests=true'
+                archiveArtifacts 'target/hello-demo-*.jar'
             }
         }
 
-        stage('Unit Test') {
+        stage('Test') {
             steps {
-                sh "mvn test"
+                sh 'mvn test'
+                junit(
+                    testResults: 'target/surefire-reports/TEST-*.xml',
+                    keepProperties: true,
+                    keepTestNames: true
+                )
             }
         }
+
+        stage('Local Deployment') {
+            steps {
+                sh "java -jar target/hello-demo-*.jar > /dev/null &"
+            }
+        }
+
+        stage('Integration Testing') {
+            steps {
+                sh 'sleep 5s'
+                sh 'curl -s http://localhost:6767/hello'
+            }
+        }
+    }
+
+    tools {
+        maven 'M398'
     }
 }
